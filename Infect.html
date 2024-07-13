@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sentiment Analysis System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        .container {
+            width: 50%;
+            margin: 0 auto;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+        }
+        button {
+            padding: 10px 20px;
+            margin-top: 10px;
+        }
+        .result, .results {
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+        input[type=file] {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sentiment Analysis System</h1>
+        <textarea id="textInput" placeholder="Enter text here..."></textarea><br>
+        <button onclick="analyzeSentiment()">Analyze Sentiment</button>
+        <div class="result" id="result"></div>
+        <hr>
+        <h2>Upload Dataset</h2>
+        <input type="file" id="fileInput" accept=".csv"><br>
+        <button onclick="uploadDataset()">Upload and Analyze</button>
+        <div class="results" id="results"></div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sentiment@5.1.1/build/sentiment.min.js"></script>
+    <script>
+        const positiveSentiments = ["joy", "love", "relief", "hope"];
+        const negativeSentiments = ["sadness", "anger", "fear", "disgust"];
+
+        function getSentimentType(score) {
+            if (score > 0) {
+                return { sentiment: "Positive", type: positiveSentiments[score % positiveSentiments.length] };
+            } else if (score < 0) {
+                return { sentiment: "Negative", type: negativeSentiments[Math.abs(score) % negativeSentiments.length] };
+            } else {
+                return { sentiment: "Neutral", type: "neutral" };
+            }
+        }
+
+        function analyzeSentiment() {
+            const text = document.getElementById('textInput').value;
+            const sentiment = new Sentiment();
+            const result = sentiment.analyze(text);
+            const { sentiment: mood, type } = getSentimentType(result.score);
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `Sentiment: ${mood}<br>Type: ${type}`;
+        }
+
+        function uploadDataset() {
+            const fileInput = document.getElementById('fileInput').files[0];
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const text = e.target.result;
+                const lines = text.split('\n');
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = '';
+                lines.forEach(line => {
+                    const [text] = line.split(',');
+                    const sentiment = new Sentiment();
+                    const result = sentiment.analyze(text);
+                    const { sentiment: mood, type } = getSentimentType(result.score);
+                    resultsDiv.innerHTML += `Text: ${text}<br>Sentiment: ${mood}<br>Type: ${type}<br><hr>`;
+                });
+            };
+            reader.readAsText(fileInput);
+        }
+    </script>
+</body>
+</html>
